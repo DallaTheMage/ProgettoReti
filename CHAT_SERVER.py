@@ -42,31 +42,29 @@ def client_handler(client):
         broadcast(bytes(CHAT_JOIN_MSG, "utf8"))
         # Registration of the client username linked to his socket.
         clients[client] = username
-        CLIENT_ADDRESS = addresses[client]
         # Waiting for new message from the client and check if the client has sent the connection closing request ("!end" message). 
         while True:
             msg = client.recv(BUFFERSIZE)
             if msg != bytes("!end", "utf8"):
                 broadcast(msg, username+": ")
             else:
-                print("Received connection closing request from %s:%s" % CLIENT_ADDRESS)
+                print("Received connection closing request from %s:%s" % addresses[client])
                 # Sending to client an end message so he can close the socket correctly.
-                print("Sending connection closure confirmation to %s:%s" % CLIENT_ADDRESS)
+                print("Sending connection closure confirmation to %s:%s" % addresses[client])
                 client.send(bytes("!end", "utf8"))
-                print("Removing %s:%s from active clients registers..." % CLIENT_ADDRESS)
+                print("Removing %s:%s from active clients registers..." % addresses[client])
                 del clients[client]
-                del addresses[client]
-                print("Closing %s:%s reserved socket" % CLIENT_ADDRESS)
+                print("Closing %s:%s reserved socket" % addresses[client])
                 client.close()
                 broadcast(bytes("%s has left the chat" % username, "utf8"))
-                print("Connection with %s:%s closed successfully." % CLIENT_ADDRESS)
+                print("Connection with %s:%s closed successfully." % addresses[client])
                 break
     # In case the connection with the client die prematurely
     except Exception as e:
         try:
-            print("%s:%s may have crashed or closed the connection prematurely." % CLIENT_ADDRESS)
+            print("%s:%s may have crashed or closed the connection prematurely." % addresses[client])
             print(repr(e))
-            print("Removing %s:%s from active clients registers..." % CLIENT_ADDRESS)
+            print("Removing %s:%s from active clients registers..." % addresses[client])
             del clients[client]
             del addresses[client]
             print("Closing death client socket...")
